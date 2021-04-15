@@ -35,7 +35,7 @@ namespace RatingBot
             }
         }
 
-        public async Task GetReport(ISocketMessageChannel channel)
+        public async Task GenReport(ISocketMessageChannel channel)
         {
             if (!ListedMessages.Any())
             {
@@ -51,16 +51,54 @@ namespace RatingBot
             ratings.Reverse();
             var best = ratings.GetRange(0, ratings.Count > 3 ? 3 : ratings.Count);
             var last = ratings.Last();
-            await channel.SendMessageAsync($"The results of {last.Message.Timestamp.Month}/{last.Message.Timestamp.Year}:");
-            for (int i = 1; i <= best.Count; i++)
-            {
-                await channel.SendMessageAsync($"In {i.ToOrdinalWords()} place with a rating of: {best[i-1].Rating.ToString(CultureInfo.CurrentCulture)}" + Environment.NewLine, allowedMentions: new AllowedMentions(AllowedMentionTypes.None), messageReference: new MessageReference(best[i - 1].Message.Id, channel.Id));
-            }
-            if (!best.Any(b => b.Message.Id.Equals(last.Message.Id)))
-            {
-                await channel.SendMessageAsync($"In last place with a rating of: {last.Rating.ToString(CultureInfo.CurrentCulture)}", messageReference: new MessageReference(last.Message.Id, channel.Id));
-            }
+            await GenMessage(channel, best, last);
 
+        }
+
+        private async Task GenMessage(ISocketMessageChannel channel, List<MessageRating> bestMessages, MessageRating lastMessage)
+        {
+            await channel.SendMessageAsync($"Statistics of {lastMessage.Message.Timestamp.Month}/{lastMessage.Message.Timestamp.Year}: ");
+            for (int i = 1; i <= bestMessages.Count; i++)
+            {
+                if (bestMessages[i - 1].Message.Attachments.Any())
+                {
+                    await channel.SendMessageAsync(
+                        $"In {i.ToOrdinalWords()} place with a rating of: {bestMessages[i - 1].Rating.ToString(CultureInfo.CurrentCulture)}" + 
+                        Environment.NewLine + bestMessages[i - 1].Message.Content + Environment.NewLine + 
+                        string.Join(" ", bestMessages[i - 1].Message.Attachments.Select(m => m.Url)), 
+                        allowedMentions: new AllowedMentions(AllowedMentionTypes.None), 
+                        messageReference: new MessageReference(bestMessages[i - 1].Message.Id, channel.Id));
+                }
+                else
+                {
+                    await channel.SendMessageAsync(
+                        $"In {i.ToOrdinalWords()} place with a rating of: {bestMessages[i - 1].Rating.ToString(CultureInfo.CurrentCulture)}" + 
+                        Environment.NewLine + bestMessages[i - 1].Message.Content, 
+                        allowedMentions: new AllowedMentions(AllowedMentionTypes.None), 
+                        messageReference: new MessageReference(bestMessages[i - 1].Message.Id, channel.Id));
+                }
+            }
+            if (!bestMessages.Any(b => b.Message.Id.Equals(lastMessage.Message.Id)))
+            {
+
+                if (lastMessage.Message.Attachments.Any())
+                {
+                    await channel.SendMessageAsync(
+                        $"In last place with a rating of: {lastMessage.Rating.ToString(CultureInfo.CurrentCulture)}" +
+                        Environment.NewLine + lastMessage.Message.Content + Environment.NewLine +
+                        string.Join(" ", lastMessage.Message.Attachments.Select(m => m.Url)),
+                        allowedMentions: new AllowedMentions(AllowedMentionTypes.None),
+                        messageReference: new MessageReference(lastMessage.Message.Id, channel.Id));
+                }
+                else
+                {
+                    await channel.SendMessageAsync(
+                        $"In last place with a rating of: {lastMessage.Rating.ToString(CultureInfo.CurrentCulture)}" +
+                        Environment.NewLine + lastMessage.Message.Content,
+                        allowedMentions: new AllowedMentions(AllowedMentionTypes.None),
+                        messageReference: new MessageReference(lastMessage.Message.Id, channel.Id));
+                }
+            }
         }
 
         private async Task<MessageRating> _getRatingOfMessage(IMessage message, ISocketMessageChannel channel)

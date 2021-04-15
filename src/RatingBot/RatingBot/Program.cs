@@ -88,23 +88,23 @@ namespace RatingBot
             {
                 case "stats":
                     //Easter Egg
-                    if (Regex.IsMatch(message.Content.Substring(1).Replace(match.Groups[0].Value, ""), "^dicks$"))
+                    if (Regex.IsMatch(match.Groups[2].Value, "^dicks$"))
                     {
                         await message.Channel.SendMessageAsync("Invalid command. Maybe use group 1 instead of 0.");
                         break;
                     }
-                    await _rating.GetReport(message.Channel);
+                    await _rating.GenReport(message.Channel);
                     break;
                 case "test":
                     if (IsDevelopment)
                     {
-                        await message.Channel.SendMessageAsync("Command disabled in production.");
+                        var newMessage = await message.Channel.SendMessageAsync(match.Groups[2].Value);
+                        _processingList.Add(newMessage.Id);
+                        await _rating.ProcessPictureMessage(newMessage);
+                        _processingList.Remove(newMessage.Id);
                         break;
                     }
-                    var newMessage = await message.Channel.SendMessageAsync(match.Groups[2].Value);
-                    _processingList.Add(newMessage.Id);
-                    await _rating.ProcessPictureMessage(newMessage);
-                    _processingList.Remove(newMessage.Id);
+                    await message.Channel.SendMessageAsync("Command disabled in production.");
                     break;
                 default:
                     await message.Channel.SendMessageAsync("Invalid command.");
