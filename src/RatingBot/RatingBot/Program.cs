@@ -17,6 +17,8 @@ namespace RatingBot
         private Configuration _config;
         private RatingManager _rating;
 
+        public bool IsDevelopment => _config.Environment.Equals("Development");
+
 		public static void Main(string[] args)
 			=> new Program().MainAsync().GetAwaiter().GetResult();
 
@@ -61,7 +63,7 @@ namespace RatingBot
             if (!message.Channel.Id.Equals(_config.ChannelId) || message.Author.IsBot)
                 return;
             //HandleNormalMessage
-            if (message.Attachments.Any() || message.Embeds.Any() || Regex.IsMatch(message.Content, "^\\!test")) //TODO: Remove debug code
+            if (message.Attachments.Any() || message.Embeds.Any())
             {
                 _processingList.Add(message.Id);
                 await _rating.ProcessPictureMessage(message);
@@ -81,7 +83,7 @@ namespace RatingBot
 
         private async Task HandleCommand(SocketMessage message)
         {
-            var match = Regex.Match(message.Content.Substring(1), "^(\\w+)\\s*");
+            var match = Regex.Match(message.Content.Substring(1), "^(\\w+)\\s*(.*)");
             switch (match.Groups[1].Value)
             {
                 case "stats":
@@ -93,7 +95,17 @@ namespace RatingBot
                     }
                     await _rating.GetReport(message.Channel);
                     break;
-
+                case "test":
+                    if (IsDevelopment)
+                    {
+                        await message.Channel.SendMessageAsync("Command disabled in production.");
+                        break;
+                    }
+                    var newMessage = await message.Channel.SendMessageAsync(match.Groups[2].Value);
+                    _processingList.Add(newMessage.Id);
+                    await _rating.ProcessPictureMessage(newMessage);
+                    _processingList.Remove(newMessage.Id);
+                    break;
                 default:
                     await message.Channel.SendMessageAsync("Invalid command.");
                     break;

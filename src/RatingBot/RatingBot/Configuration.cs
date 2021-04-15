@@ -11,5 +11,6 @@ namespace RatingBot
         public string Token { get; set; }
         public ulong ChannelId { get; set; }
         public List<string> EmojiNames { get; set; }
+        public string Environment { get; set; }
     }
 }
