@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Hosting;
@@ -32,14 +33,14 @@ namespace RatingBot
                 .ConfigureLogging((context, x) =>
                 {
                     x.AddConsole();
-                    var logLevel = context.Configuration["Environment"].Equals("Development")
+                    var logLevel = !string.IsNullOrEmpty(context.Configuration["Environment"]) && context.Configuration["Environment"].Equals("Development")
                         ? LogLevel.Debug
                         : LogLevel.Information;
                     x.SetMinimumLevel(logLevel);
                 })
                 .ConfigureDiscordHost<DiscordSocketClient>((context, config) =>
                 {
-                    var logSeverity = context.Configuration["Environment"].Equals("Development")
+                    var logSeverity = !string.IsNullOrEmpty(context.Configuration["Environment"]) && context.Configuration["Environment"].Equals("Development")
                         ? LogSeverity.Verbose
                         : LogSeverity.Info;
                     config.SocketConfig = new DiscordSocketConfig
@@ -48,12 +49,15 @@ namespace RatingBot
                         AlwaysDownloadUsers = true,
                         MessageCacheSize = 200,
                     };
-
+                    if (string.IsNullOrEmpty(context.Configuration["token"]))
+                    {
+                        throw new Exception("No token given.");
+                    }
                     config.Token = context.Configuration["token"];
                 })
                 .UseCommandService((context, config) =>
                 {
-                    var logSeverity = context.Configuration["Environment"].Equals("Development")
+                    var logSeverity = !string.IsNullOrEmpty(context.Configuration["Environment"]) && context.Configuration["Environment"].Equals("Development")
                         ? LogSeverity.Verbose
                         : LogSeverity.Info;
                     config.CaseSensitiveCommands = false;
@@ -63,6 +67,28 @@ namespace RatingBot
                 .ConfigureServices((context, services) =>
                 {
                     services.AddOptions();
+                    if (!context.Configuration.GetSection(nameof(RatingConfig)).Exists())
+                    {
+                        throw new Exception("Could not obtain RatingConfig values");
+                    }
+                    else
+                    {
+                        var ratingConf = context.Configuration.GetSection(nameof(RatingConfig)).Get<RatingConfig>();
+                        var idsExist = ratingConf.ChannelIds != null && ratingConf.ChannelIds.Any();
+                        var emojiExist = ratingConf.EmojiNames != null && ratingConf.EmojiNames.Count > 1;
+                        if (!idsExist && !emojiExist)
+                        {
+                            throw new Exception("Not enough chanel Id's & not enough emoji's");
+                        }
+                        else if (!idsExist)
+                        {
+                            throw new Exception("Not enough chanel Id's");
+                        }
+                        else if (!emojiExist)
+                        {
+                            throw new Exception("Not enough emoji's");
+                        }
+                    }
                     services.Configure<RatingConfig>(context.Configuration.GetSection(nameof(RatingConfig)));
                     services.AddHostedService<CommandHandler>();
                     services.AddSingleton<RatingService>();
