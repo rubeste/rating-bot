@@ -136,15 +136,6 @@ namespace RatingBot.Services
             ListedMessages.Add(message);
         }
 
-        // public async Task ProcessPictureMessage(IMessage message)
-        // {
-        //     foreach (var emote in _emotes)
-        //     {
-        //         message.AddReactionAsync(emote).Wait();
-        //     }
-        //     _addMessageToList(message);
-        // }
-
         private bool _isModifyingMessages = false;
 
         public void ProcessChannelMessage(IMessage message)
