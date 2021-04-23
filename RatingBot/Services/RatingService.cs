@@ -106,11 +106,11 @@ namespace RatingBot.Services
             var total = 0;
             var votes = 0;
             message = await channel.GetMessageAsync(message.Id);
-            var reactions = message.Reactions;
-            for (int i = 0; i < _emotes.Count; i++)
+            var reactions = message.Reactions.Where(r => _emotes.Contains(r.Key)).ToList();
+            foreach (var reaction in reactions)
             {
-                total += i * (reactions[_emotes[i]].ReactionCount - 1);
-                votes += message.Reactions[_emotes[i]].ReactionCount - 1;
+                total += _emotes.IndexOf(reaction.Key) * (reaction.Value.ReactionCount - 1);
+                votes += reaction.Value.ReactionCount - 1;
             }
             if (votes == 0)
             {
