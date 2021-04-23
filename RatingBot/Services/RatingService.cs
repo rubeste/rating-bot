@@ -8,6 +8,7 @@ using Discord;
 using Discord.WebSocket;
 using Humanizer;
 using Microsoft.Extensions.Options;
+using RatingBot.Configs;
 
 namespace RatingBot.Services
 {
@@ -15,14 +16,12 @@ namespace RatingBot.Services
     {
         public List<IMessage> ListedMessages { get; set; }
         private List<IEmote> _emotes;
-        private readonly IOptions<RatingConfig> _config;
 
         public RatingService(IOptions<RatingConfig> config)
         {
-            _config = config;
             _emotes = new List<IEmote>();
             ListedMessages = new List<IMessage>();
-            foreach (var emoji in _config.Value.EmojiNames)
+            foreach (var emoji in config.Value.EmojiNames)
             {
                 if (emoji.StartsWith("<"))
                 {

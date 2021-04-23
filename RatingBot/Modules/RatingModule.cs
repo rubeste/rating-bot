@@ -1,25 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Data;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using RatingBot.Configs;
 using RatingBot.Services;
 
 namespace RatingBot.Modules
 {
-    public class Rating : ModuleBase
+    public class RatingModule : ModuleBase<SocketCommandContext>
     {
         private readonly RatingService _ratingService;
         private readonly IOptions<RatingConfig> _conf;
+        private readonly ILogger<RatingModule> _logger;
 
-        public Rating(RatingService ratingService, IOptions<RatingConfig> conf)
+        public RatingModule(RatingService ratingService, IOptions<RatingConfig> conf, ILogger<RatingModule> logger)
         {
             _ratingService = ratingService;
             _conf = conf;
+            _logger = logger;
         }
 
         [Command("stats")]
@@ -28,9 +28,10 @@ namespace RatingBot.Modules
             if (arg != null && arg.Equals("Dicks"))
             {
                 await Context.Channel.SendMessageAsync("Invalid command. Maybe use group 1 instead of 0.");
+                _logger.LogDebug("Rubeste was again being dumb with regex");
                 return;
             }
-            await _ratingService.GenReport(Context.Channel as ISocketMessageChannel);
+            await _ratingService.GenReport(Context.Channel);
         }
 
         [Command("test")]
@@ -44,6 +45,5 @@ namespace RatingBot.Modules
             }
             await Context.Channel.SendMessageAsync("Command disabled in production.");
         }
-
     }
 }

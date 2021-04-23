@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RatingBot
+namespace RatingBot.Configs
 {
     public class RatingConfig
     {
-        public string Token { get; set; }
-        public ulong ChannelId { get; set; }
+        public ulong[] ChannelIds { get; set; }
         public List<string> EmojiNames { get; set; }
         public string Environment { get; set; }
     }
