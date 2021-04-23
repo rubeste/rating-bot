@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RatingBot
 {
-    public class Configuration
+    public class RatingConfig
     {
         public string Token { get; set; }
         public ulong ChannelId { get; set; }

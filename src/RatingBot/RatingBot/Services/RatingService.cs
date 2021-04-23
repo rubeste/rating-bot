@@ -3,26 +3,26 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Humanizer;
+using Microsoft.Extensions.Options;
 
-namespace RatingBot
+namespace RatingBot.Services
 {
-    public class RatingManager
+    public class RatingService
     {
         public List<IMessage> ListedMessages { get; set; }
         private List<IEmote> _emotes;
-        private readonly Configuration _config;
+        private readonly IOptions<RatingConfig> _config;
 
-        public RatingManager(Configuration config)
+        public RatingService(IOptions<RatingConfig> config)
         {
             _config = config;
             _emotes = new List<IEmote>();
             ListedMessages = new List<IMessage>();
-            foreach (var emoji in _config.EmojiNames)
+            foreach (var emoji in _config.Value.EmojiNames)
             {
                 if (emoji.StartsWith("<"))
                 {
@@ -51,11 +51,11 @@ namespace RatingBot
             ratings.Reverse();
             var best = ratings.GetRange(0, ratings.Count > 3 ? 3 : ratings.Count);
             var last = ratings.Last();
-            await GenMessage(channel, best, last);
+            await _genMessage(channel, best, last);
 
         }
 
-        private async Task GenMessage(ISocketMessageChannel channel, List<MessageRating> bestMessages, MessageRating lastMessage)
+        private async Task _genMessage(ISocketMessageChannel channel, List<MessageRating> bestMessages, MessageRating lastMessage)
         {
             await channel.SendMessageAsync($"Statistics of {lastMessage.Message.Timestamp.Month}/{lastMessage.Message.Timestamp.Year}: ");
             for (int i = 1; i <= bestMessages.Count; i++)
@@ -63,18 +63,18 @@ namespace RatingBot
                 if (bestMessages[i - 1].Message.Attachments.Any())
                 {
                     await channel.SendMessageAsync(
-                        $"In {i.ToOrdinalWords()} place with a rating of: {bestMessages[i - 1].Rating.ToString(CultureInfo.CurrentCulture)}" + 
-                        Environment.NewLine + bestMessages[i - 1].Message.Content + Environment.NewLine + 
-                        string.Join(" ", bestMessages[i - 1].Message.Attachments.Select(m => m.Url)), 
-                        allowedMentions: new AllowedMentions(AllowedMentionTypes.None), 
+                        $"In {i.ToOrdinalWords()} place with a rating of: {bestMessages[i - 1].Rating.ToString(CultureInfo.CurrentCulture)}" +
+                        Environment.NewLine + bestMessages[i - 1].Message.Content + Environment.NewLine +
+                        string.Join(" ", bestMessages[i - 1].Message.Attachments.Select(m => m.Url)),
+                        allowedMentions: new AllowedMentions(AllowedMentionTypes.None),
                         messageReference: new MessageReference(bestMessages[i - 1].Message.Id, channel.Id));
                 }
                 else
                 {
                     await channel.SendMessageAsync(
-                        $"In {i.ToOrdinalWords()} place with a rating of: {bestMessages[i - 1].Rating.ToString(CultureInfo.CurrentCulture)}" + 
-                        Environment.NewLine + bestMessages[i - 1].Message.Content, 
-                        allowedMentions: new AllowedMentions(AllowedMentionTypes.None), 
+                        $"In {i.ToOrdinalWords()} place with a rating of: {bestMessages[i - 1].Rating.ToString(CultureInfo.CurrentCulture)}" +
+                        Environment.NewLine + bestMessages[i - 1].Message.Content,
+                        allowedMentions: new AllowedMentions(AllowedMentionTypes.None),
                         messageReference: new MessageReference(bestMessages[i - 1].Message.Id, channel.Id));
                 }
             }
