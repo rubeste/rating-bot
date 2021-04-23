@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Humanizer;
 using Microsoft.Extensions.Options;
+using RatingBot.Configs;
 
 namespace RatingBot.Services
 {
@@ -15,14 +17,12 @@ namespace RatingBot.Services
     {
         public List<IMessage> ListedMessages { get; set; }
         private List<IEmote> _emotes;
-        private readonly IOptions<RatingConfig> _config;
 
         public RatingService(IOptions<RatingConfig> config)
         {
-            _config = config;
             _emotes = new List<IEmote>();
             ListedMessages = new List<IMessage>();
-            foreach (var emoji in _config.Value.EmojiNames)
+            foreach (var emoji in config.Value.EmojiNames)
             {
                 if (emoji.StartsWith("<"))
                 {
@@ -136,14 +136,27 @@ namespace RatingBot.Services
             ListedMessages.Add(message);
         }
 
-        public async Task ProcessPictureMessage(IMessage message)
+        private bool _isModifyingMessages = false;
+
+        public void ProcessChannelMessage(IMessage message)
         {
-            foreach (var emote in _emotes)
+            ThreadPool.QueueUserWorkItem(state =>
             {
-                await message.AddReactionAsync(emote);
-            }
-            _addMessageToList(message);
+                foreach (var emote in _emotes)
+                {
+                    message.AddReactionAsync(emote).Wait();
+                    Task.Delay(100).Wait();
+                }
+                while (_isModifyingMessages)
+                {
+                    Task.Delay(10).Wait();
+                }
+                _isModifyingMessages = true;
+                _addMessageToList(message);
+                _isModifyingMessages = false;
+            });
         }
+
     }
 
     class MessageRating : IComparable<MessageRating>
