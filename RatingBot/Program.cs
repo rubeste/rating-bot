@@ -24,7 +24,6 @@ namespace RatingBot
                     var configuration = new ConfigurationBuilder()
                         .SetBasePath(Directory.GetCurrentDirectory())
                         .AddJsonFile("appsettings.json", false, true)
-                        .AddJsonFile("secrets.json", false, true)
                         .Build();
 
                     x.AddConfiguration(configuration);
