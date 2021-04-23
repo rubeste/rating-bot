@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "RatingBot": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

@@ -23,7 +23,8 @@ namespace RatingBot
                 {
                     var configuration = new ConfigurationBuilder()
                         .SetBasePath(Directory.GetCurrentDirectory())
-                        .AddJsonFile("appsettings.json", false, true)
+                        .AddJsonFile("appsettings.json", true, true)
+                        .AddEnvironmentVariables("RatingBot_")
                         .Build();
 
                     x.AddConfiguration(configuration);
