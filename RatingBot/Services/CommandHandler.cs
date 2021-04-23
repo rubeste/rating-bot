@@ -56,7 +56,7 @@ namespace RatingBot.Services
             if (!_ratingConf.Value.ChannelIds.Contains(message.Channel.Id)) return;
             if (message.Attachments.Any() || message.Embeds.Any())
             {
-                await _rating.ProcessPictureMessage(message);
+                _rating.ProcessChannelMessage(message);
                 _logger.LogDebug("Processing animal picture");
                 return;
             }

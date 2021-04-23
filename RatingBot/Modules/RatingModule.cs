@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RatingBot.Configs;
@@ -12,10 +13,10 @@ namespace RatingBot.Modules
     public class RatingModule : ModuleBase<SocketCommandContext>
     {
         private readonly RatingService _ratingService;
-        private readonly IOptions<RatingConfig> _conf;
+        private readonly IConfiguration _conf;
         private readonly ILogger<RatingModule> _logger;
 
-        public RatingModule(RatingService ratingService, IOptions<RatingConfig> conf, ILogger<RatingModule> logger)
+        public RatingModule(RatingService ratingService, IConfiguration conf, ILogger<RatingModule> logger)
         {
             _ratingService = ratingService;
             _conf = conf;
@@ -37,10 +38,10 @@ namespace RatingBot.Modules
         [Command("test")]
         public async Task Test(string text)
         {
-            if (_conf.Value.Environment.Equals("Development"))
+            if (_conf["Environment"].Equals("Development"))
             {
                 var newMessage = await Context.Channel.SendMessageAsync(text);
-                await _ratingService.ProcessPictureMessage(newMessage);
+                _ratingService.ProcessChannelMessage(newMessage);
                 return;
             }
             await Context.Channel.SendMessageAsync("Command disabled in production.");

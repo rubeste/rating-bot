@@ -10,6 +10,5 @@ namespace RatingBot.Configs
     {
         public ulong[] ChannelIds { get; set; }
         public List<string> EmojiNames { get; set; }
-        public string Environment { get; set; }
     }
 }

@@ -29,16 +29,22 @@ namespace RatingBot
 
                     x.AddConfiguration(configuration);
                 })
-                .ConfigureLogging(x =>
+                .ConfigureLogging((context, x) =>
                 {
                     x.AddConsole();
-                    x.SetMinimumLevel(LogLevel.Debug); // Defines what kind of information should be logged (e.g. Debug, Information, Warning, Critical) adjust this to your liking
+                    var logLevel = context.Configuration["Environment"].Equals("Development")
+                        ? LogLevel.Debug
+                        : LogLevel.Information;
+                    x.SetMinimumLevel(logLevel);
                 })
                 .ConfigureDiscordHost<DiscordSocketClient>((context, config) =>
                 {
+                    var logSeverity = context.Configuration["Environment"].Equals("Development")
+                        ? LogSeverity.Verbose
+                        : LogSeverity.Info;
                     config.SocketConfig = new DiscordSocketConfig
                     {
-                        LogLevel = LogSeverity.Verbose, // Defines what kind of information should be logged from the API (e.g. Verbose, Info, Warning, Critical) adjust this to your liking
+                        LogLevel = logSeverity, // Defines what kind of information should be logged from the API (e.g. Verbose, Info, Warning, Critical) adjust this to your liking
                         AlwaysDownloadUsers = true,
                         MessageCacheSize = 200,
                     };
@@ -47,8 +53,11 @@ namespace RatingBot
                 })
                 .UseCommandService((context, config) =>
                 {
+                    var logSeverity = context.Configuration["Environment"].Equals("Development")
+                        ? LogSeverity.Verbose
+                        : LogSeverity.Info;
                     config.CaseSensitiveCommands = false;
-                    config.LogLevel = LogSeverity.Verbose;
+                    config.LogLevel = logSeverity;
                     config.DefaultRunMode = RunMode.Async;
                 })
                 .ConfigureServices((context, services) =>

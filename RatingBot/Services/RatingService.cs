@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -135,14 +136,36 @@ namespace RatingBot.Services
             ListedMessages.Add(message);
         }
 
-        public async Task ProcessPictureMessage(IMessage message)
+        // public async Task ProcessPictureMessage(IMessage message)
+        // {
+        //     foreach (var emote in _emotes)
+        //     {
+        //         message.AddReactionAsync(emote).Wait();
+        //     }
+        //     _addMessageToList(message);
+        // }
+
+        private bool _isModifyingMessages = false;
+
+        public void ProcessChannelMessage(IMessage message)
         {
-            foreach (var emote in _emotes)
+            ThreadPool.QueueUserWorkItem(state =>
             {
-                await message.AddReactionAsync(emote);
-            }
-            _addMessageToList(message);
+                foreach (var emote in _emotes)
+                {
+                    message.AddReactionAsync(emote).Wait();
+                    Task.Delay(100).Wait();
+                }
+                while (_isModifyingMessages)
+                {
+                    Task.Delay(10).Wait();
+                }
+                _isModifyingMessages = true;
+                _addMessageToList(message);
+                _isModifyingMessages = false;
+            });
         }
+
     }
 
     class MessageRating : IComparable<MessageRating>
