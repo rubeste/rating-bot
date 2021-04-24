@@ -3,9 +3,6 @@ version: '3.4'
 services:
   ratingbot:
     image: rubeste/ratingbot:latest
-    build:
-      context: .
-      dockerfile: RatingBot/Dockerfile
     environment:
       - DOTNET_ENVIRONMENT=Production
       - RatingBot_prefix=!
