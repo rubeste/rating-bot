@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RatingBot.Configs;
@@ -13,14 +14,14 @@ namespace RatingBot.Modules
     public class RatingModule : ModuleBase<SocketCommandContext>
     {
         private readonly RatingService _ratingService;
-        private readonly IConfiguration _conf;
         private readonly ILogger<RatingModule> _logger;
+        private readonly bool _isDevelopment;
 
-        public RatingModule(RatingService ratingService, IConfiguration conf, ILogger<RatingModule> logger)
+        public RatingModule(RatingService ratingService, ILogger<RatingModule> logger, IHostEnvironment env)
         {
             _ratingService = ratingService;
-            _conf = conf;
             _logger = logger;
+            _isDevelopment = env.IsDevelopment();
         }
 
         [Command("stats")]
@@ -38,7 +39,7 @@ namespace RatingBot.Modules
         [Command("test")]
         public async Task Test(string text)
         {
-            if (_conf["Environment"].Equals("Development"))
+            if (_isDevelopment)
             {
                 var newMessage = await Context.Channel.SendMessageAsync(text);
                 _ratingService.ProcessChannelMessage(newMessage);
