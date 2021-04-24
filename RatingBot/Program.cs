@@ -28,7 +28,6 @@ namespace RatingBot
                 {
                     var configuration = new ConfigurationBuilder()
                         .SetBasePath(Directory.GetCurrentDirectory())
-                        .AddJsonFile("appsettings.json", true, true)
                         .AddEnvironmentVariables("RatingBot_")
                         .Build();
                     x.AddConfiguration(configuration);
@@ -48,7 +47,7 @@ namespace RatingBot
                         : LogSeverity.Info;
                     config.SocketConfig = new DiscordSocketConfig
                     {
-                        LogLevel = logSeverity, // Defines what kind of information should be logged from the API (e.g. Verbose, Info, Warning, Critical) adjust this to your liking
+                        LogLevel = logSeverity,
                         AlwaysDownloadUsers = true,
                         MessageCacheSize = 200,
                     };
