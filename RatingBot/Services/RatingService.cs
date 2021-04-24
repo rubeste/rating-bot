@@ -37,13 +37,14 @@ namespace RatingBot.Services
 
         public async Task GenReport(ISocketMessageChannel channel)
         {
-            if (!ListedMessages.Any())
+            var channelMessages = ListedMessages.Where(msg => msg.Channel.Id.Equals(channel.Id)).ToList();
+            if (!channelMessages.Any())
             {
                 await channel.SendMessageAsync("No messages found");
                 return;
             }
             var ratings = new List<MessageRating>();
-            foreach (var message in ListedMessages)
+            foreach (var message in channelMessages)
             {
                 ratings.Add(await _getRatingOfMessage(message, channel));
             }
@@ -63,7 +64,7 @@ namespace RatingBot.Services
                 if (bestMessages[i - 1].Message.Attachments.Any())
                 {
                     await channel.SendMessageAsync(
-                        $"In {i.ToOrdinalWords()} place with a rating of: {bestMessages[i - 1].Rating.ToString(CultureInfo.CurrentCulture)}" +
+                        $"In {i.ToOrdinalWords()} place with a rating of: {bestMessages[i - 1].Rating.ToString(CultureInfo.CurrentCulture)}/{_emotes.Count - 1}" +
                         Environment.NewLine + bestMessages[i - 1].Message.Content + Environment.NewLine +
                         string.Join(" ", bestMessages[i - 1].Message.Attachments.Select(m => m.Url)),
                         allowedMentions: new AllowedMentions(AllowedMentionTypes.None),
@@ -72,7 +73,7 @@ namespace RatingBot.Services
                 else
                 {
                     await channel.SendMessageAsync(
-                        $"In {i.ToOrdinalWords()} place with a rating of: {bestMessages[i - 1].Rating.ToString(CultureInfo.CurrentCulture)}" +
+                        $"In {i.ToOrdinalWords()} place with a rating of: {bestMessages[i - 1].Rating.ToString(CultureInfo.CurrentCulture)}/{_emotes.Count - 1}" +
                         Environment.NewLine + bestMessages[i - 1].Message.Content,
                         allowedMentions: new AllowedMentions(AllowedMentionTypes.None),
                         messageReference: new MessageReference(bestMessages[i - 1].Message.Id, channel.Id));
@@ -84,7 +85,7 @@ namespace RatingBot.Services
                 if (lastMessage.Message.Attachments.Any())
                 {
                     await channel.SendMessageAsync(
-                        $"In last place with a rating of: {lastMessage.Rating.ToString(CultureInfo.CurrentCulture)}" +
+                        $"In last place with a rating of: {lastMessage.Rating.ToString(CultureInfo.CurrentCulture)}/{_emotes.Count - 1}" +
                         Environment.NewLine + lastMessage.Message.Content + Environment.NewLine +
                         string.Join(" ", lastMessage.Message.Attachments.Select(m => m.Url)),
                         allowedMentions: new AllowedMentions(AllowedMentionTypes.None),
